@@ -1,0 +1,30 @@
+profile: default
+language: en
+use_gpu: false
+
+loader:
+  pdf_dpi: 300
+
+preprocessing:
+  mode: intelligent
+  steps:
+    - upscale
+    - denoise
+    - deskew
+    - contrast
+
+routing:
+  primary_engine: paddle
+  fallback_chain:
+    - trocr
+  min_confidence: 0.55
+
+export:
+  formats:
+    - json
+    - txt
+  include_boxes: true
+
+batch:
+  workers: 4
+  continue_on_error: true

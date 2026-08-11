@@ -1,0 +1,8 @@
+{
+  "pythonVersion": "3.13",
+  "extraPaths": [
+    ".",
+    "src",
+    "C:/Users/Admin/AppData/Local/Programs/Python/Python313/Lib/site-packages"
+  ]
+}

@@ -1,0 +1,19 @@
+profile: receipt
+language: en
+use_gpu: false
+
+preprocessing:
+  mode: intelligent
+  steps:
+    - upscale
+    - denoise
+    - contrast
+
+routing:
+  primary_engine: paddle
+  min_confidence: 0.6
+
+export:
+  formats:
+    - json
+    - csv

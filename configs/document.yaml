@@ -1,0 +1,15 @@
+profile: document
+language: en
+use_gpu: false
+
+preprocessing:
+  mode: intelligent
+
+routing:
+  primary_engine: paddle
+  min_confidence: 0.55
+
+export:
+  formats:
+    - json
+    - txt

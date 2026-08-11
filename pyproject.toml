@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ocr-framework"
+version = "1.0.0"
+description = "Reusable, extensible OCR pipeline framework"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+paddle = [
+    "paddlepaddle>=2.6.0",
+    "paddleocr>=2.7.3",
+    "opencv-python>=4.9.0",
+    "Pillow>=10.0.0",
+    "scikit-image>=0.22.0",
+    "pyspellchecker>=0.8.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ocr_framework*", "src*"]
+
+[tool.pyright]
+extraPaths = [".", "src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "src"]

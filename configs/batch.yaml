@@ -1,0 +1,12 @@
+profile: batch
+language: en
+use_gpu: false
+
+export:
+  formats:
+    - json
+
+batch:
+  workers: 4
+  continue_on_error: true
+  output_format: txt

@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  ocr-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ocr-framework:1.0.0
+    container_name: ocr-api
+    ports:
+      - "8000:8000"
+    environment:
+      - OCR_LOG_LEVEL=INFO
+      - OCR_LOG_FILE=/app/logs/ocr.log
+      - OCR_API_HOST=0.0.0.0
+      - OCR_API_PORT=8000
+      - OCR_API_WORKERS=2
+      - OCR_USE_GPU=false
+      - OCR_PROFILE=default
+    volumes:
+      - ./configs:/app/configs:ro
+      - ocr-output:/app/output
+      - ocr-logs:/app/logs
+      - ocr-models:/root/.paddleocr:rw
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # GPU-enabled variant (requires nvidia-docker runtime)
+  ocr-api-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ocr-framework:1.0.0
+    container_name: ocr-api-gpu
+    ports:
+      - "8001:8000"
+    environment:
+      - OCR_LOG_LEVEL=INFO
+      - OCR_LOG_FILE=/app/logs/ocr.log
+      - OCR_API_HOST=0.0.0.0
+      - OCR_API_PORT=8000
+      - OCR_API_WORKERS=1
+      - OCR_USE_GPU=true
+      - OCR_PROFILE=default
+    volumes:
+      - ./configs:/app/configs:ro
+      - ocr-output:/app/output
+      - ocr-logs:/app/logs
+      - ocr-models:/root/.paddleocr:rw
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    profiles: ["gpu"]
+
+volumes:
+  ocr-output:
+  ocr-logs:
+  ocr-models:

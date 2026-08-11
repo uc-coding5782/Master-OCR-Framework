@@ -1,0 +1,20 @@
+profile: handwriting
+language: en
+use_gpu: false
+
+preprocessing:
+  mode: fixed
+  steps:
+    - upscale
+    - contrast
+
+routing:
+  primary_engine: trocr
+  fallback_chain:
+    - paddle
+  min_confidence: 0.45
+
+export:
+  formats:
+    - json
+    - txt
