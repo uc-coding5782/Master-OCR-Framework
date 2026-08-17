@@ -77,10 +77,11 @@ class PaddleRecognizer(TextRecognizer):
                         use_angle_cls=self._use_angle_cls,
                         lang=self._lang,
                         use_gpu=self._use_gpu,
+                        enable_mkldnn=False,
                         show_log=False,
                     )
                 except (TypeError, ValueError):
-                    v3_kwargs: dict[str, Any] = {"lang": self._lang}
+                    v3_kwargs: dict[str, Any] = {"lang": self._lang, "enable_mkldnn": False}
                     if self._use_angle_cls:
                         v3_kwargs["use_textline_orientation"] = True
                     if self._use_gpu:

@@ -59,12 +59,22 @@ async def run_pdf_ocr(
         for line in page.lines:
             bbox = None
             if include_boxes and line.bbox is not None:
-                bbox = {
-                    "x_min": line.bbox.x_min,
-                    "y_min": line.bbox.y_min,
-                    "x_max": line.bbox.x_max,
-                    "y_max": line.bbox.y_max,
-                }
+                if hasattr(line.bbox, "x_min"):
+                    bbox = {
+                        "x_min": line.bbox.x_min,
+                        "y_min": line.bbox.y_min,
+                        "x_max": line.bbox.x_max,
+                        "y_max": line.bbox.y_max,
+                    }
+                elif hasattr(line.bbox, "points") and line.bbox.points:
+                    xs = [p.x for p in line.bbox.points]
+                    ys = [p.y for p in line.bbox.points]
+                    bbox = {
+                        "x_min": min(xs),
+                        "y_min": min(ys),
+                        "x_max": max(xs),
+                        "y_max": max(ys),
+                    }
             lines.append(
                 OCRLineResponse(
                     text=line.text,

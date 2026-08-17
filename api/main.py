@@ -69,8 +69,11 @@ def create_app() -> "FastAPI":
             "Install it with: pip install fastapi uvicorn python-multipart"
         )
 
-    from fastapi import FastAPI, HTTPException, Request
-    from fastapi.responses import JSONResponse
+    from pathlib import Path
+    from fastapi import FastAPI, Form, HTTPException, Request
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import FileResponse, JSONResponse
+    from fastapi.staticfiles import StaticFiles
 
     from api.routes import batch as batch_routes
     from api.routes import health as health_routes
@@ -98,6 +101,51 @@ def create_app() -> "FastAPI":
             "name": "MIT",
         },
     )
+
+    # Enable CORS for flexible client interactions
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Mount static files directory
+    static_dir = Path(__file__).parent / "static"
+    if static_dir.exists():
+        app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+    @app.get("/", include_in_schema=False)
+    async def serve_ui():
+        index_file = static_dir / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+        return JSONResponse({"message": "OCR Framework API operational. Web UI assets not found."})
+
+    @app.post("/ocr/download", include_in_schema=False)
+    async def download_transcript(
+        content: str = Form(...),
+        filename: str = Form(default="transcript.txt"),
+        format: str = Form(default="txt"),
+    ):
+        from fastapi.responses import Response
+
+        media_types = {
+            "txt": "text/plain; charset=utf-8",
+            "md": "text/markdown; charset=utf-8",
+            "csv": "text/csv; charset=utf-8",
+            "json": "application/json; charset=utf-8",
+        }
+        media_type = media_types.get(format, "text/plain; charset=utf-8")
+        if not filename.endswith(f".{format}"):
+            filename = f"{filename}.{format}"
+
+        return Response(
+            content=content.encode("utf-8"),
+            media_type=media_type,
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
 
     # Register route modules
     app.include_router(health_routes.router)

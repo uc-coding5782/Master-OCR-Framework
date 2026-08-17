@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OCR Chillspace - Relaxing Book & Document Transcriber</title>
+  
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="background-glow"></div>
+  
+  <div class="app-container">
+    <!-- Header -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="brand-icon">✨</div>
+        <div class="brand-text">
+          <h1>OCR Chillspace</h1>
+          <p>Cozy Book & Document Transcriber</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <!-- Ambient Sound Player (YouTube Stream Integration) -->
+        <div class="ambient-player" id="ambient-player">
+          <span class="ambient-label">🎧 Radio:</span>
+          <button class="sound-btn active" data-yt="none">🔇 Off</button>
+          <button class="sound-btn" data-yt="Llour2YvsiI">🌙 Night Study</button>
+        </div>
+        <div class="hidden-yt-player">
+          <iframe id="yt-player" width="1" height="1" src="" allow="autoplay"></iframe>
+        </div>
+        
+        <!-- Status Pill -->
+        <div class="status-pill" id="api-status">
+          <span class="status-dot"></span>
+          <span class="status-text">Checking API...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+      <!-- Hero Intro -->
+      <section class="hero-section">
+        <h2>Drop your books & notes. Relax in a cozy reading space.</h2>
+        <p>Convert scanned book pages, photo gallery captures, PDFs, and study notes into readable text with multi-engine OCR precision.</p>
+      </section>
+
+      <!-- Configuration Toolbar -->
+      <section class="config-toolbar">
+        <div class="config-group">
+          <label for="language-select">🌐 Language:</label>
+          <select id="language-select" class="custom-select">
+            <option value="en" selected>English (en)</option>
+            <option value="es">Spanish (es)</option>
+            <option value="fr">French (fr)</option>
+            <option value="de">German (de)</option>
+            <option value="zh">Chinese (zh)</option>
+            <option value="ja">Japanese (ja)</option>
+            <option value="ko">Korean (ko)</option>
+            <option value="ru">Russian (ru)</option>
+          </select>
+        </div>
+
+        <div class="config-group checkbox-group">
+          <label class="toggle-switch">
+            <input type="checkbox" id="include-boxes" checked />
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">Extract Bounding Boxes</span>
+        </div>
+      </section>
+
+      <!-- Upload Zone -->
+      <section class="upload-section">
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone-content">
+            <div class="upload-icon">📖</div>
+            <h3>Drop your book page, note, or document here</h3>
+            <p>Supports PNG, JPG, WEBP, BMP, TIFF, and PDF files</p>
+
+            <div class="upload-options">
+              <button type="button" class="btn btn-primary" id="gallery-btn">
+                <span class="btn-icon">📷</span>
+                <span>Upload from Gallery / Files</span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="sample-btn">
+                <span class="btn-icon">🖼️</span>
+                <span>Try Sample Image</span>
+              </button>
+              <input type="file" id="file-input" accept="image/*,.pdf,.tif,.tiff" class="hidden-input" />
+            </div>
+          </div>
+        </div>
+
+        <!-- File Preview Card (Hidden by default) -->
+        <div class="file-preview-card hidden" id="file-preview-card">
+          <div class="preview-info">
+            <div class="file-thumb" id="file-thumb">📄</div>
+            <div class="file-details">
+              <span class="file-name" id="preview-filename">document.png</span>
+              <span class="file-meta" id="preview-meta">1.2 MB • Image</span>
+            </div>
+          </div>
+          <div class="preview-actions">
+            <button type="button" class="btn btn-secondary btn-sm" id="remove-file-btn">Remove</button>
+            <button type="button" class="btn btn-action" id="transcribe-btn">
+              <span>✨ Transcribe Now</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state hidden" id="loading-state">
+          <div class="cozy-spinner"></div>
+          <p class="loading-text" id="loading-text">Reading pages & extracting text... ☕</p>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Carrot Box Output Container -->
+      <section class="result-section hidden" id="result-section">
+        <!-- The Carrot Box Accordion -->
+        <div class="carrot-box" id="carrot-box">
+          <!-- Carrot Box Header (Clickable Accordion Bar) -->
+          <div class="carrot-box-header" id="carrot-header">
+            <div class="carrot-header-main">
+              <div class="carrot-badge">
+                <span class="carrot-icon">🥕</span>
+                <span class="carrot-title">Transcript Carrot Box</span>
+              </div>
+              <div class="metrics-pills">
+                <span class="badge" id="metric-pages">1 Page</span>
+                <span class="badge badge-accent" id="metric-confidence">Conf: 98.5%</span>
+                <span class="badge badge-subtle" id="metric-time">0.42s</span>
+              </div>
+            </div>
+
+            <div class="carrot-header-actions">
+              <span class="carrot-hint">Click to toggle transcript</span>
+              <button class="carrot-toggle-btn" id="carrot-toggle-btn" aria-label="Toggle Carrot Box">
+                <span class="caret-arrow" id="caret-arrow">▼</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Carrot Box Body (Collapsible Content) -->
+          <div class="carrot-box-body" id="carrot-body">
+            <!-- Reader Toolbar -->
+            <div class="reader-toolbar">
+              <div class="view-tabs">
+                <button class="tab-btn active" data-tab="cozy-reader">📖 Cozy Reader</button>
+                <button class="tab-btn" data-tab="raw-text">📝 Raw Text</button>
+                <button class="tab-btn" data-tab="line-inspector">🔍 BBox Overlay</button>
+                <button class="tab-btn" data-tab="json-view">{ } JSON</button>
+              </div>
+
+              <div class="toolbar-actions">
+                <button class="icon-btn" id="tts-btn" title="Listen to Book (Text-to-Speech)">
+                  <span class="icon">🔊</span>
+                  <span class="btn-text">Listen</span>
+                </button>
+                <button class="icon-btn" id="copy-btn" title="Copy Transcript">
+                  <span class="icon">📋</span>
+                  <span class="btn-text">Copy</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Transcribed Output File Banner & Multi-Format Download Center -->
+            <div class="output-file-box" id="output-file-box">
+              <div class="output-file-info">
+                <div class="output-file-icon">📁</div>
+                <div class="output-file-details">
+                  <h4 class="output-filename" id="output-filename">transcribed_document.txt</h4>
+                  <div class="output-file-stats">
+                    <span class="stat-tag" id="stat-words">0 Words</span>
+                    <span class="stat-tag" id="stat-lines">0 Lines</span>
+                    <span class="stat-tag" id="stat-chars">0 Chars</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="output-file-download-group">
+                <label for="export-format-select" class="format-label">Download Format:</label>
+                <select id="export-format-select" class="custom-select format-select">
+                  <option value="txt" selected>📄 Plain Text (.txt)</option>
+                  <option value="md">📝 Markdown (.md)</option>
+                  <option value="csv">📊 CSV Spreadsheet (.csv)</option>
+                  <option value="json">⚙️ Raw JSON (.json)</option>
+                </select>
+                <button type="button" class="btn btn-action btn-sm" id="download-file-btn">
+                  <span>⬇️ Download Transcribed File</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab Content 1: Cozy Reader -->
+            <div class="tab-pane active" id="pane-cozy-reader">
+              <div class="reader-settings">
+                <div class="setting-item">
+                  <span>Font:</span>
+                  <button class="font-btn active" data-font="serif">Serif (Book)</button>
+                  <button class="font-btn" data-font="sans">Sans (Clean)</button>
+                </div>
+                <div class="setting-item">
+                  <span>Size:</span>
+                  <button class="size-btn" id="size-dec">A-</button>
+                  <button class="size-btn" id="size-inc">A+</button>
+                </div>
+                <div class="setting-item">
+                  <span>Theme:</span>
+                  <button class="theme-btn active" data-theme="dark">Cozy Dark</button>
+                  <button class="theme-btn" data-theme="sepia">Warm Sepia</button>
+                  <button class="theme-btn" data-theme="paper">Book Paper</button>
+                </div>
+              </div>
+
+              <!-- Book Page Format Container -->
+              <div class="book-page-sheet theme-dark font-serif" id="book-page-sheet">
+                <div class="book-page-header">
+                  <span class="book-page-title">📄 Extracted Book Page</span>
+                  <span class="book-page-badge" id="book-page-num">Page 1</span>
+                </div>
+                <div class="cozy-reader-view" id="cozy-reader-content">
+                  <!-- Dynamic extracted book text rendered here -->
+                </div>
+                <div class="book-page-footer">
+                  <span>📖 OCR Chillspace Relaxing Book Reader</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Content 2: Raw Text -->
+            <div class="tab-pane" id="pane-raw-text">
+              <textarea id="raw-text-area" class="code-textarea" readonly spellcheck="false"></textarea>
+            </div>
+
+            <!-- Tab Content 3: Bounding Box Visual Overlay -->
+            <div class="tab-pane" id="pane-line-inspector">
+              <div class="inspector-container">
+                <div class="canvas-wrapper">
+                  <canvas id="overlay-canvas"></canvas>
+                </div>
+                <div class="lines-list-container">
+                  <h4>Extracted Lines Breakdown</h4>
+                  <div class="lines-list" id="lines-list">
+                    <!-- Line cards with confidence & bbox -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Content 4: Raw JSON Response -->
+            <div class="tab-pane" id="pane-json-view">
+              <pre class="json-code" id="json-code"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>✨ Powered by OCR Framework • Intelligent Preprocessing & Engine Routing</p>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

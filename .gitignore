@@ -34,3 +34,4 @@ cache/
 # Outputs
 outputs/
 sample_*.png
+output.txt
