@@ -47,9 +47,11 @@ async def run_batch(
             dest.write_bytes(await upload.read())
             input_paths.append(dest)
 
+        from starlette.concurrency import run_in_threadpool
+
         processor = create_batch_processor(pipeline, str(output_dir))
         try:
-            report = processor.process_files(input_paths)
+            report = await run_in_threadpool(processor.process_files, input_paths)
         except OCRFrameworkError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 

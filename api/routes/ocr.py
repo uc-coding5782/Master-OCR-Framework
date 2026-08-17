@@ -34,6 +34,8 @@ async def run_ocr(
             detail=f"Unsupported file type '{suffix}'. Supported: {sorted(_SUPPORTED_EXTENSIONS)}",
         )
 
+    from starlette.concurrency import run_in_threadpool
+
     pipeline = get_pipeline()
     pipeline.config.language = language
 
@@ -43,7 +45,7 @@ async def run_ocr(
             tmp.write(content)
             tmp_path = Path(tmp.name)
 
-        result = pipeline.run(tmp_path)
+        result = await run_in_threadpool(pipeline.run, tmp_path)
     except OCRFrameworkError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
