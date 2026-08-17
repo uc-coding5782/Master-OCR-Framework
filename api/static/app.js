@@ -413,7 +413,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function triggerMultiFormatDownload() {
     if (!ocrResultData) return;
     const format = exportFormatSelect ? exportFormatSelect.value : 'txt';
-    const baseName = currentFile ? (currentFile.name.substring(0, currentFile.name.lastIndexOf('.')) || 'transcribed_doc') : 'transcribed_doc';
+    let baseName = 'transcribed_doc';
+    if (currentFile && currentFile.name) {
+      const dotIdx = currentFile.name.lastIndexOf('.');
+      baseName = dotIdx > 0 ? currentFile.name.substring(0, dotIdx) : currentFile.name;
+    }
+    // Clean baseName of any illegal filename characters
+    baseName = baseName.replace(/[\\/:*?"<>|]/g, '_');
     const fileName = `${baseName}_transcript.${format}`;
 
     let content = '';
@@ -449,38 +455,22 @@ document.addEventListener('DOMContentLoaded', () => {
       mimeType = 'application/json;charset=utf-8';
     }
 
-    // Submit form to server endpoint for guaranteed real download with exact filename
-    submitDownloadForm(content, fileName, format);
+    // Direct client-side download: guarantees clean, exact filename without server UUIDs or popup blockers
+    downloadBlobFile(content, fileName, mimeType);
   }
 
-  function submitDownloadForm(content, filename, format) {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/ocr/download';
-    form.target = '_blank';
-    form.style.display = 'none';
-
-    const inputContent = document.createElement('input');
-    inputContent.type = 'hidden';
-    inputContent.name = 'content';
-    inputContent.value = content;
-    form.appendChild(inputContent);
-
-    const inputName = document.createElement('input');
-    inputName.type = 'hidden';
-    inputName.name = 'filename';
-    inputName.value = filename;
-    form.appendChild(inputName);
-
-    const inputFormat = document.createElement('input');
-    inputFormat.type = 'hidden';
-    inputFormat.name = 'format';
-    inputFormat.value = format;
-    form.appendChild(inputFormat);
-
-    document.body.appendChild(form);
-    form.submit();
-    setTimeout(() => document.body.removeChild(form), 1000);
+  function downloadBlobFile(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 200);
   }
 
   copyBtn.addEventListener('click', () => {
