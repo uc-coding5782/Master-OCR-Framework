@@ -418,9 +418,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const dotIdx = currentFile.name.lastIndexOf('.');
       baseName = dotIdx > 0 ? currentFile.name.substring(0, dotIdx) : currentFile.name;
     }
-    // Clean baseName of any illegal filename characters
-    baseName = baseName.replace(/[\\/:*?"<>|]/g, '_');
-    const fileName = `${baseName}_transcript.${format}`;
+    // Clean baseName of illegal characters and keep reasonable length for Windows MAX_PATH
+    baseName = baseName.replace(/[^a-zA-Z0-9_\-\s]/g, '_').substring(0, 45).trim();
+    const fileName = `${baseName || 'document'}_transcript.${format}`;
 
     let content = '';
     let mimeType = 'text/plain;charset=utf-8';
